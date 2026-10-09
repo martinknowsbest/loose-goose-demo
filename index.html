@@ -105,9 +105,47 @@
     .btn.ghost{margin-left:0;margin-top:14px}
     .hero-meta{flex-direction:column;gap:9px;font-size:10px;letter-spacing:.22em}
   }
+
+  /* MOTION LAYER */
+  #bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--red);z-index:60}
+  header{transition:background .35s ease,padding .35s ease,backdrop-filter .35s ease}
+  header.scrolled{background:rgba(12,14,17,.92);backdrop-filter:blur(10px);padding:14px 48px}
+  .hero-inner>*{opacity:0;animation:rise 1s cubic-bezier(.2,.7,.2,1) forwards}
+  .hero-inner .tag{animation-delay:.15s}
+  .hero-inner h1{animation-delay:.28s}
+  .hero-inner p{animation-delay:.42s}
+  .hero-inner .btn{animation-delay:.56s}
+  .hero-inner .btn.ghost{animation-delay:.66s}
+  .hero-meta{opacity:0;animation:rise 1s ease .9s forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+  .btn:hover{letter-spacing:.3em}
+  .marquee{overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg2)}
+  .marquee-track{display:flex;width:max-content;animation:slide 24s linear infinite}
+  .marquee-track span{white-space:nowrap;padding:16px 32px 16px 0;font-family:'Oswald',sans-serif;font-size:13px;
+    letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.38)}
+  .marquee-track span em{font-style:normal;color:var(--red)}
+  @keyframes slide{to{transform:translateX(-50%)}}
+  .menu-grid .item{opacity:0;transform:translateY(26px);transition:opacity .6s ease,transform .6s ease,padding .3s ease}
+  .menu-grid.in .item{opacity:1;transform:none}
+  .menu-grid.in .item:nth-child(2){transition-delay:.08s}
+  .menu-grid.in .item:nth-child(3){transition-delay:.16s}
+  .menu-grid.in .item:nth-child(4){transition-delay:.24s}
+  .menu-grid.in .item:nth-child(5){transition-delay:.32s}
+  .menu-grid.in .item:nth-child(6){transition-delay:.4s}
+  .item:hover{padding-left:10px}
+  .item .name{transition:color .3s ease}
+  .item:hover .name{color:var(--red)}
+  .split img{transition:transform .7s ease}
+  .split img:hover{transform:scale(1.025)}
+  .mapcard{transition:transform .25s ease}
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .hero-inner>*,.hero-meta,.menu-grid .item{opacity:1;transform:none}
+  }
 </style>
 </head>
 <body>
+<div id="bar"></div>
 
 <header>
   <a class="logo" href="#top">LOOSE<span>GOOSE</span></a>
@@ -131,6 +169,8 @@
   </div>
   <div class="hero-meta"><span>Roasted in-house daily</span><span>Open from 6 AM</span><span>★ 4.8 · 324 reviews</span></div>
 </section>
+
+<div class="marquee" aria-hidden="true"><div class="marquee-track"><span>Slow roasted <em>·</em> Small batch <em>·</em> Single origin <em>·</em> Poured one cup at a time <em>·</em> Terre Haute <em>·</em> </span><span>Slow roasted <em>·</em> Small batch <em>·</em> Single origin <em>·</em> Poured one cup at a time <em>·</em> Terre Haute <em>·</em> </span></div></div>
 
 <section id="craft">
   <div class="wrap split">
@@ -201,6 +241,32 @@
   },{passive:true});
   const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('in')),{threshold:.18});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  const bar=document.getElementById('bar');
+  const hd=document.querySelector('header');
+  const hi=document.querySelector('.hero-inner');
+  const hm=document.querySelector('.hero-meta');
+  const heroSec=document.querySelector('.hero');
+  addEventListener('scroll',()=>{
+    const d=document.documentElement;
+    bar.style.width=(scrollY/(d.scrollHeight-innerHeight)*100)+'%';
+    hd.classList.toggle('scrolled',scrollY>40);
+    const h=heroSec.offsetHeight;
+    if(scrollY<h){
+      hi.style.transform='translateY('+(scrollY*.18)+'px)';
+      hi.style.opacity=Math.max(0,1-scrollY/h*1.15);
+      hm.style.opacity=Math.max(0,1-scrollY/h*1.7);
+    }
+  },{passive:true});
+  const card=document.querySelector('.mapcard');
+  if(card&&matchMedia('(pointer:fine)').matches){
+    card.addEventListener('mousemove',e=>{
+      const r=card.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+      card.style.transform='perspective(800px) rotateY('+(x*6).toFixed(2)+'deg) rotateX('+(-y*6).toFixed(2)+'deg)';
+    });
+    card.addEventListener('mouseleave',()=>card.style.transform='');
+  }
 </script>
 </body>
 </html>
