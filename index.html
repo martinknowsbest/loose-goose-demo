@@ -180,6 +180,19 @@
   .hero h1 em{background:linear-gradient(100deg,#e0262b 25%,#ff6a4d 45%,#ffd9a0 50%,#ff6a4d 55%,#e0262b 75%);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:sheen 4.5s ease-in-out infinite}
   @keyframes sheen{0%,100%{background-position:130% 0}50%{background-position:-30% 0}}
   @media (prefers-reduced-motion:reduce){.hero h1 em{background:none;color:var(--red);-webkit-text-fill-color:var(--red);animation:none}}
+
+  /* MOBILE MENU OVERLAY */
+  .mnav{position:fixed;inset:0;background:rgba(7,10,14,.96);z-index:5000;display:flex;flex-direction:column;justify-content:center;padding:0 36px;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}
+  .mnav.open{opacity:1;visibility:visible}
+  .mnav a{font-family:Oswald,sans-serif;font-size:34px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);text-decoration:none;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.08);opacity:0;transform:translateY(16px);transition:opacity .4s ease,transform .4s ease,color .2s}
+  .mnav a:hover{color:var(--red)}
+  .mnav.open a{opacity:1;transform:none}
+  .mnav.open a:nth-child(1){transition-delay:.06s}.mnav.open a:nth-child(2){transition-delay:.12s}
+  .mnav.open a:nth-child(3){transition-delay:.18s}.mnav.open a:nth-child(4){transition-delay:.24s}
+  .burger i{transition:transform .3s ease,opacity .3s ease}
+  .burger.open i:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .burger.open i:nth-child(2){opacity:0}
+  .burger.open i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 </style>
 </head>
 <body>
@@ -195,6 +208,13 @@
   </nav>
   <button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
 </header>
+
+<div class="mnav" id="mnav" aria-hidden="true">
+  <a href="#top">The Pour</a>
+  <a href="#craft">The Craft</a>
+  <a href="#menu">Menu</a>
+  <a href="#visit">Find Us</a>
+</div>
 
 <section class="hero" id="top">
   <div class="hero-bg"></div>
@@ -372,6 +392,17 @@ function drawFx(hh){ if(scrollY>hh+120){ctx.clearRect(0,0,W,Hh);return;}
   P.forEach(function(p){p.y-=p.s;p.w+=.01;p.x+=Math.sin(p.w)*.3;if(p.y<-6){p.y=Hh+6;p.x=Math.random()*W}
     ctx.fillStyle="rgba(255,235,220,"+(p.a*.7).toFixed(3)+")";ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();});
   ctx.globalCompositeOperation="source-over";}
+/* mobile menu */
+var burger=document.querySelector(".burger"),mnav=document.getElementById("mnav");
+if(burger&&mnav){
+ burger.addEventListener("click",function(){var o=mnav.classList.toggle("open");burger.classList.toggle("open",o);mnav.setAttribute("aria-hidden",o?"false":"true");});
+ mnav.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(e){
+   e.preventDefault();mnav.classList.remove("open");burger.classList.remove("open");
+   var s=document.querySelector(a.getAttribute("href"));
+   if(s){ if(fine){target=s.offsetTop;anim=true;} else{s.scrollIntoView({behavior:"smooth"});} }
+ })});
+}
+
 /* master loop */
 var hi=document.querySelector(".hero-inner");
 var bg=document.querySelector(".hero-bg"),cl=document.querySelector(".cup-layer"),st=document.querySelector(".cup-layer .steam"),st2=document.querySelector(".cup-layer .steam.s2");
