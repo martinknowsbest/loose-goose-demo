@@ -154,6 +154,14 @@
   @keyframes glowPulse{0%,100%{opacity:.55}50%{opacity:1}}
   .split .ph{display:block;overflow:hidden;border-radius:4px;box-shadow:0 40px 80px rgba(0,0,0,.55)}
   .split .ph img{will-change:transform;display:block;width:100%;border-radius:4px}
+
+  @media (max-width:860px), (orientation:portrait) and (max-width:1024px){
+    .cup-layer{width:min(46vh,64vw,280px);bottom:8%}
+    .ringglow{width:110vw;height:26vmin;bottom:4%}
+  }
+  @media (max-width:860px) and (max-height:520px){
+    .cup-layer{width:min(50vh,40vw,220px);bottom:12%}
+  }
 </style>
 </head>
 <body>
