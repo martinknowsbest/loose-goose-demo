@@ -435,10 +435,10 @@ var beans=new THREE.InstancedMesh(new THREE.SphereGeometry(.2,10,8),
   new THREE.MeshStandardMaterial({color:0x4a2c17,roughness:.55}),36);
 var dummy=new THREE.Object3D();
 for(var bi=0;bi<36;bi++){
-  var ang=Math.random()*6.283, rr=2.8+Math.random()*6;
+  var ang=Math.random()*6.283, rr=2.6+Math.random()*2.2;
   dummy.position.set(Math.sin(ang)*rr, .2+Math.random()*4.6, Math.cos(ang)*rr);
   dummy.rotation.set(Math.random()*3.14,Math.random()*3.14,Math.random()*3.14);
-  var bs=.6+Math.random()*.9;
+  var bs=.32+Math.random()*.4;
   dummy.scale.set(bs,bs*.62,bs*.82);
   dummy.updateMatrix();
   beans.setMatrixAt(bi,dummy.matrix);
