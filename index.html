@@ -163,7 +163,6 @@
 </div>
 
 <div class="hero-wrap"><section class="hero" id="top">
-  <canvas id="gl3d" aria-hidden="true"></canvas>
   <p class="kicker">Terre Haute · Small batch roasted</p>
   <h1 class="big" id="big">DEFY THE <em>MORNING.</em></h1>
   <p class="lede">Slow-roasted single origin, poured one cup at a time. Two shops in Terre Haute, one obsession: coffee worth getting out of bed for.</p>
@@ -342,10 +341,10 @@ function loop(){
     if(vis){
       var float_=Math.sin(performance.now()*.0011)*10;
       var tilt=Math.max(-6,Math.min(6,vel*.08));
-      var ry=-14+pp*26+tilt;
-      var rx=8-pp*8;
-      var scl=.9+pp*.5;
-      cup.style.transform='perspective(1100px) rotateY('+ry+'deg) rotateX('+rx+'deg) scale('+scl+') translateY('+(float_-pp*90)+'px)';
+      var ry=-24+pp*30+tilt;
+      var rx=10-pp*12;
+      var scl=.85+pp*.55;
+      cup.style.transform='perspective(1100px) rotateY('+ry+'deg) rotateX('+rx+'deg) scale('+scl+') translateY('+(float_-pp*110)+'px)';
     }
     var ex=Math.max(0,(pp-.5)/.5);
     for(var ei=0;ei<copyEls.length;ei++){
@@ -375,151 +374,5 @@ requestAnimationFrame(loop);
 
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-(function(){
-var hero=document.querySelector('.hero');
-var cv=document.getElementById('gl3d');
-if(!cv||!window.THREE)return;
-var renderer;
-try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});}catch(e){return;}
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-var scene=new THREE.Scene();
-scene.fog=new THREE.Fog(0xf2ecdf,9,26);
-var cam=new THREE.PerspectiveCamera(35,1,.1,100);
-hero.classList.add('gl-on');
-
-var key=new THREE.DirectionalLight(0xfff1dc,1.05);
-key.position.set(4.5,6.5,3.5);key.castShadow=true;
-key.shadow.mapSize.set(1024,1024);
-key.shadow.camera.left=-6;key.shadow.camera.right=6;key.shadow.camera.top=7;key.shadow.camera.bottom=-4;
-scene.add(key);
-scene.add(new THREE.AmbientLight(0xfff6ec,.4));
-var fill=new THREE.DirectionalLight(0xffd9b0,.22);fill.position.set(-4,2,-2);scene.add(fill);
-
-var red=new THREE.MeshStandardMaterial({color:0xc22217,roughness:.3,metalness:.05});
-
-var prof=[[0,.03],[.8,.03],[.98,.16],[1.04,.5],[1.22,1.5],[1.32,2.3],[1.28,2.86],[1.2,2.92],[1.14,2.86],[1.06,2.2],[.9,1.2],[.72,.45],[0,.4]];
-var cup=new THREE.Mesh(new THREE.LatheGeometry(prof.map(function(p){return new THREE.Vector2(p[0],p[1]);}),80),red);
-cup.castShadow=true;
-var group=new THREE.Group();group.add(cup);
-var handle=new THREE.Mesh(new THREE.TorusGeometry(.52,.11,18,48,Math.PI*1.25),red);
-handle.position.set(1.1,1.6,0);handle.rotation.z=-2.1;handle.castShadow=true;group.add(handle);
-var sprof=[[0,.09],[.85,.09],[1.9,.2],[2.35,.34],[2.4,.26],[1.9,.14],[.85,.04],[0,.04]];
-var saucer=new THREE.Mesh(new THREE.LatheGeometry(sprof.map(function(p){return new THREE.Vector2(p[0],p[1]);}),80),red);
-saucer.position.y=-.09;saucer.castShadow=true;group.add(saucer);
-var coffee=new THREE.Mesh(new THREE.CircleGeometry(1.02,56),
-  new THREE.MeshStandardMaterial({color:0x2b140a,roughness:.15,metalness:.06}));
-coffee.rotation.x=-Math.PI/2;coffee.position.y=.45;group.add(coffee);
-
-var ac=document.createElement('canvas');ac.width=ac.height=512;
-var g2=ac.getContext('2d');
-var grd=g2.createRadialGradient(256,256,30,256,256,250);
-grd.addColorStop(0,'#b5793a');grd.addColorStop(1,'#8a5423');
-g2.fillStyle=grd;g2.fillRect(0,0,512,512);
-g2.strokeStyle='rgba(255,250,240,.92)';g2.lineCap='round';
-g2.lineWidth=13;g2.beginPath();g2.moveTo(256,430);g2.lineTo(256,300);g2.stroke();
-g2.lineWidth=12;g2.beginPath();g2.arc(206,322,46,Math.PI*1.2,Math.PI*1.95);g2.stroke();
-g2.beginPath();g2.arc(306,322,46,Math.PI*1.05,Math.PI*1.8);g2.stroke();
-g2.lineWidth=11;g2.beginPath();g2.arc(224,246,36,Math.PI*.8,Math.PI*2.0);g2.stroke();
-g2.beginPath();g2.arc(288,246,36,Math.PI*1.0,Math.PI*2.2);g2.stroke();
-g2.lineWidth=10;g2.beginPath();g2.arc(256,196,26,Math.PI*1.5,Math.PI*3.35);g2.stroke();
-var artTex=new THREE.CanvasTexture(ac);
-var art=new THREE.Mesh(new THREE.CircleGeometry(.99,56),
-  new THREE.MeshBasicMaterial({map:artTex,transparent:true,opacity:0}));
-art.rotation.x=-Math.PI/2;art.position.y=.47;group.add(art);
-
-/* coffee beans floating in depth */
-var beans=new THREE.InstancedMesh(new THREE.SphereGeometry(.2,10,8),
-  new THREE.MeshStandardMaterial({color:0x4a2c17,roughness:.55}),36);
-var dummy=new THREE.Object3D();
-for(var bi=0;bi<36;bi++){
-  var ang=Math.random()*6.283, rr=2.6+Math.random()*2.2;
-  dummy.position.set(Math.sin(ang)*rr, .2+Math.random()*4.6, Math.cos(ang)*rr);
-  dummy.rotation.set(Math.random()*3.14,Math.random()*3.14,Math.random()*3.14);
-  var bs=.32+Math.random()*.4;
-  dummy.scale.set(bs,bs*.62,bs*.82);
-  dummy.updateMatrix();
-  beans.setMatrixAt(bi,dummy.matrix);
-}
-var beanGroup=new THREE.Group();beanGroup.add(beans);scene.add(beanGroup);
-
-/* steam */
-var sc=document.createElement('canvas');sc.width=sc.height=128;
-var sg=sc.getContext('2d');
-var sgr=sg.createRadialGradient(64,64,6,64,64,60);
-sgr.addColorStop(0,'rgba(255,255,255,.75)');sgr.addColorStop(.6,'rgba(255,255,255,.25)');sgr.addColorStop(1,'rgba(255,255,255,0)');
-sg.fillStyle=sgr;sg.fillRect(0,0,128,128);
-var steamTex=new THREE.CanvasTexture(sc);
-var puffs=[];
-for(var si=0;si<12;si++){
-  var sm=new THREE.SpriteMaterial({map:steamTex,transparent:true,opacity:0,depthWrite:false});
-  var sp=new THREE.Sprite(sm);
-  puffs.push({s:sp,a:Math.random(),off:Math.random()});
-  group.add(sp);
-}
-
-var ground=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.ShadowMaterial({opacity:.11}));
-ground.rotation.x=-Math.PI/2;ground.position.y=-.09;ground.receiveShadow=true;scene.add(ground);
-scene.add(group);
-group.scale.setScalar(.58);
-
-function fit(){
-  var w=cv.clientWidth||innerWidth, ht=cv.clientHeight||innerHeight;
-  renderer.setSize(w,ht,false);
-  cam.aspect=w/ht;
-  cam.fov=cam.aspect<0.8?48:35;
-  cam.updateProjectionMatrix();
-}
-fit();addEventListener('resize',fit);
-
-var wrap=document.querySelector('.hero-wrap');
-var els=[].slice.call(document.querySelectorAll('.hero .kicker,.hero .big,.hero .lede,.hero .ctas,.hero .hero-foot'));
-var p=window.matchMedia('(prefers-reduced-motion: reduce)').matches?.42:0;
-var lookT=new THREE.Vector3(), farT=new THREE.Vector3(0,2.2,-3);
-function onScroll(){
-  var r=wrap.getBoundingClientRect();
-  var total=r.height-innerHeight;
-  p=Math.min(1,Math.max(0,-r.top/Math.max(1,total)));
-  var az=(-40+p*240)*Math.PI/180;
-  var rad=6.6+p*4.0;
-  var hy=1.5+p*2.1;
-  cam.position.set(Math.sin(az)*rad,hy,Math.cos(az)*rad);
-  lookT.set(0,.95,0).lerp(farT,Math.max(0,(p-.7)/.3)*.5);
-  cam.lookAt(lookT);
-  var lb=Math.max(0,(p-.7)/.3);
-  group.rotation.y=p*2.6;
-  var f=Math.min(1,p/.5);
-  coffee.position.y=.45+f*2.3;art.position.y=coffee.position.y+.03;
-  art.material.opacity=Math.max(0,(f-.72)/.28);
-  var ex=Math.max(0,(p-.5)/.5);
-  for(var i=0;i<els.length;i++){
-    els[i].style.opacity=String(1-ex);
-    els[i].style.transform='translateY('+(-ex*46)+'px)';
-  }
-}
-addEventListener('scroll',onScroll,{passive:true});onScroll();
-
-var t0=performance.now();
-function tick(){
-  var t=(performance.now()-t0)*.001;
-  group.position.y=Math.sin(t*.9)*.05;
-  beanGroup.rotation.y=p*1.3+t*.03;
-  for(var i=0;i<puffs.length;i++){
-    var q=puffs[i];q.a+=.0042;if(q.a>1){q.a=0;q.off=Math.random();}
-    var pp=q.a,life=Math.sin(Math.PI*pp);
-    var y=3.0+pp*1.7;
-    var sw=Math.sin(pp*6+q.off*6.28)*.28*(pp+.2);
-    q.s.position.set(sw+(q.off-.5)*.4,y,0);
-    var sc2=(.5+pp*1.4);q.s.scale.set(sc2,sc2,1);
-    q.s.material.opacity=life*.12;
-  }
-  renderer.render(scene,cam);
-  requestAnimationFrame(tick);
-}
-tick();
-})();
-</script>
 </body>
 </html>
