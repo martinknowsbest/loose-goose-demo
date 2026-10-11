@@ -176,7 +176,7 @@
   @media (prefers-reduced-motion:reduce){.grain{animation:none}.ltr{transition:none;opacity:1;transform:none}}
 
   /* LIVING BACKGROUND + SHIMMER */
-  #gl{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;mix-blend-mode:screen;opacity:.65}
+  #gl{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
   .hero h1 em{background:linear-gradient(100deg,#e0262b 25%,#ff6a4d 45%,#ffd9a0 50%,#ff6a4d 55%,#e0262b 75%);background-size:260% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:sheen 4.5s ease-in-out infinite}
   @keyframes sheen{0%,100%{background-position:130% 0}50%{background-position:-30% 0}}
   @media (prefers-reduced-motion:reduce){.hero h1 em{background:none;color:var(--red);-webkit-text-fill-color:var(--red);animation:none}}
@@ -193,6 +193,17 @@
   .burger.open i:nth-child(1){transform:translateY(7px) rotate(45deg)}
   .burger.open i:nth-child(2){opacity:0}
   .burger.open i:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+  /* LOADER */
+  .loader{position:fixed;inset:0;background:#05080c;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;transition:opacity .7s ease .1s,visibility .7s ease .1s}
+  .loader.done{opacity:0;visibility:hidden}
+  .loadlogo{font-family:Oswald,sans-serif;font-size:30px;letter-spacing:.34em;color:#eceae6;font-weight:600}
+  .loadlogo span{color:var(--red)}
+  .loadbar{width:180px;height:2px;background:rgba(255,255,255,.12);overflow:hidden}
+  .loadbar i{display:block;height:100%;width:0;background:var(--red);animation:loadfill 1.3s ease forwards}
+  @keyframes loadfill{to{width:100%}}
+  .loader:not(.done){animation:loaderauto 3s forwards}
+  @keyframes loaderauto{0%,86%{opacity:1;visibility:visible}100%{opacity:0;visibility:hidden}}
 </style>
 </head>
 <body>
@@ -208,6 +219,8 @@
   </nav>
   <button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
 </header>
+
+<div class="loader" aria-hidden="true"><div class="loadlogo">LOOSE<span>GOOSE</span></div><div class="loadbar"><i></i></div></div>
 
 <div class="mnav" id="mnav" aria-hidden="true">
   <a href="#top">The Pour</a>
@@ -347,6 +360,18 @@
 <div class="grain" aria-hidden="true"></div>
 <script>
 (function(){
+ var ld=document.querySelector(".loader");
+ if(!ld)return;
+ var lifted=false;
+ function lift(){ if(lifted)return; lifted=true; ld.classList.add("done");
+   setTimeout(function(){ if(window.__goHead)window.__goHead(); },350);
+   setTimeout(function(){ if(ld.parentNode)ld.parentNode.removeChild(ld); },2400); }
+ if(matchMedia("(prefers-reduced-motion: reduce)").matches){lift();}
+ else{setTimeout(lift,1700);}
+})();
+</script>
+<script>
+(function(){
 if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
 var fine=matchMedia("(pointer:fine)").matches;
 var hero=document.querySelector(".hero");
@@ -359,7 +384,7 @@ function wrap(n){var txt=n.textContent,f=document.createDocumentFragment();
   n.replaceWith(f)}
 Array.prototype.slice.call(h1.childNodes).forEach(function(n){
   if(n.nodeType===3)wrap(n);else if(n.nodeType===1&&n.tagName!=="BR")Array.prototype.slice.call(n.childNodes).forEach(function(m){if(m.nodeType===3)wrap(m)})});
-setTimeout(function(){h1.classList.add("go")},180);
+window.__goHead=function(){h1.classList.add("go")};
 var io=new IntersectionObserver(function(es){es.forEach(function(en){
   if(en.isIntersecting){setTimeout(function(){h1.classList.add("go")},300)}
   else{h1.classList.remove("go")}
@@ -412,17 +437,48 @@ var glc=document.getElementById('gl'),gl=null,uni=null,vert=null;
 try{gl=glc?glc.getContext('webgl',{antialias:false,depth:false}):null;}catch(e){gl=null;}
 if(gl){
  var VS='attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
- var FS='precision mediump float;uniform float t;uniform vec2 r;'+
- 'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'+
- 'float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);'+
- 'return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}'+
- 'float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.13;a*=.5;}return v;}'+
- 'void main(){vec2 uv=gl_FragCoord.xy/r;vec2 q=vec2(r.x/r.y,1.)*uv*1.7;'+
- 'float n=fbm(q+vec2(t*.05,t*.028)+fbm(q*.7-vec2(t*.035,t*.02))*.65);'+
- 'float col=exp(-pow((uv.x-.5)*3.6,2.))*exp(-pow((uv.y-.38)*2.4,2.));'+
- 'vec3 c=vec3(.035,.085,.125)+vec3(.5,.07,.06)*col*pow(n,2.1)*1.15;'+
- 'c+=vec3(.9,.72,.48)*pow(max(n-.6,0.),2.2)*col;'+
- 'gl_FragColor=vec4(c,1.);}';
+ var FS=`precision mediump float;
+uniform float t;
+uniform vec2 r;
+float hash1(float n){return fract(sin(n*127.1)*43758.5453);}
+float hash2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+ return mix(mix(hash2(i),hash2(i+vec2(1.,0.)),f.x),mix(hash2(i+vec2(0.,1.)),hash2(i+vec2(1.,1.)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*noise(p);p*=2.07;a*=.5;}return v;}
+vec4 layer(vec2 uv,float seed,float cells,float hmin,float spread,float drift,vec3 bcol,vec3 wcol,float wden){
+ float x=(uv.x+drift)*cells;
+ float cell=floor(x);
+ float h=hash1(cell*17.31+seed);
+ float bh=hmin+spread*h;
+ float inB=step(uv.y,bh);
+ vec3 col=bcol*(0.7+0.6*h);
+ vec2 wi=vec2(floor(fract(x)*6.),floor(uv.y*26.));
+ float rowMax=floor(bh*26.)-1.5;
+ float lit=step(1.-wden,hash2(wi+vec2(cell*3.71,seed)));
+ float tw=.45+.55*sin(t*1.6+hash2(wi*1.31+seed)*6.28);
+ float fx=fract(x*6.),fy=fract(uv.y*26.);
+ float inW=step(.14,fx)*step(fx,.8)*step(.22,fy)*step(fy,.78)*step(wi.y,rowMax);
+ vec3 w=wcol*lit*tw*inB*inW*.85;
+ return vec4(col+w,inB);
+}
+void main(){
+ vec2 uv=gl_FragCoord.xy/r;
+ vec3 sky=mix(vec3(.008,.024,.040),vec3(.030,.085,.125),pow(uv.y,1.5));
+ sky+=vec3(.28,.05,.03)*exp(-pow((uv.x-.5)*2.1,2.))*exp(-pow((uv.y-.30)*2.6,2.));
+ sky+=vec3(.05,.11,.15)*fbm(vec2(uv.x*3.-t*.012,uv.y*5.5))*.4;
+ vec2 sp=floor(vec2(r.x/r.y,1.)*uv*90.);
+ float star=step(.9965,hash2(sp))*(.4+.6*sin(t*1.8+hash2(sp)*6.28))*smoothstep(.12,.5,uv.y);
+ sky+=vec3(.8,.85,.95)*star*.55;
+ vec3 c=sky;
+ vec4 L;
+ L=layer(uv,3.1,13.,.16,.30,t*.0040,vec3(.045,.085,.105),vec3(.50,.60,.72),.22); c=mix(c,L.rgb,L.a);
+ L=layer(uv,7.7,8.5,.26,.34,t*.0085,vec3(.024,.050,.066),vec3(.95,.60,.28),.16); c=mix(c,L.rgb,L.a);
+ L=layer(uv,11.3,5.,.32,.40,t*.0160,vec3(.010,.020,.028),vec3(1.,.52,.22),.11); c=mix(c,L.rgb,L.a);
+ c+=vec3(.05,.09,.115)*fbm(vec2(uv.x*4.-t*.02,uv.y*3.))*exp(-uv.y*4.5)*.7;
+ c+=vec3(.42,.055,.04)*exp(-pow((uv.x-.5)*4.6,2.))*exp(-pow((uv.y-.05)*6.5,2.));
+ c*=1.-.35*pow(length(uv-vec2(.5,.42))*1.15,2.);
+ gl_FragColor=vec4(c,1.);
+}`;
  function sh(src,tp){var s=gl.createShader(tp);gl.shaderSource(s,src);gl.compileShader(s);
    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(s);return s;}
  try{
